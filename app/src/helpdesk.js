@@ -31,6 +31,9 @@ export class HelpdeskClient {
         
         return this.get(pathname, params); 
       }
+      if (res.status === 410) {
+            throw new Error("410_CURSOR_EXPIRED");
+      }
       
       const body = await res.text();
       throw new Error(`Helpdesk API GET ${url} failed: ${res.status} ${body}`);

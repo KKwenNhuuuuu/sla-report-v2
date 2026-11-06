@@ -44,6 +44,6 @@ export async function initDB() {
         CREATE TABLE IF NOT EXISTS sync_state (key TEXT PRIMARY KEY, value TEXT);
     `);
 
-    console.log("Đã khởi tạo xong schema SQLite!");
+    console.log("SQLite schema initialized.");
     return dbInstance;
 }

@@ -82,3 +82,69 @@ export async function runInitialSync(db) {
     console.timeEnd("Initial Sync Time");
     console.log("Initial Sync Complete. App is ready.");
 }
+
+let isSyncing = false; 
+export function startLiveSync(db) {
+    setInterval(async () => {
+        if (!isAppReady || isSyncing) return;
+
+        isSyncing = true;
+        try {
+            const state = await db.get('SELECT value FROM sync_state WHERE key = "next_cursor"');
+            let cursor = state ? state.value : null;
+
+            let hasMore = true;
+
+            while (hasMore) {
+                let url = '/v1/changes?limit=500';
+                if (cursor) url += `&cursor=${cursor}`;
+
+                const changesRes = await client.get(url);
+
+                if (changesRes.data.length > 0) {
+                    await db.exec('BEGIN TRANSACTION');
+                    
+                    for (let change of changesRes.data) {
+                        if (change.type === 'request.created' || change.type === 'request.updated') {
+                            const r = change.request;
+                            await db.run(`INSERT OR REPLACE INTO requests 
+                                (id, site_id, priority, status, created_at, deleted_at, merged_into_id, raw_data) 
+                                VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, 
+                                [r.id, r.site_id, r.priority, r.status, r.created_at, r.deleted_at, r.merged_into_id, JSON.stringify(r)]);
+                        } 
+                        else if (change.type === 'event.created') {
+                            const e = change.event;
+                            await db.run(`INSERT OR REPLACE INTO events 
+                                (id, request_id, status, at, actor_id, due_at, reverts_id, raw_data) 
+                                VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, 
+                                [e.id, change.request_id, e.status, e.at, e.actor_id, e.due_at, e.reverts_id, JSON.stringify(e)]);
+                        }
+                        else if (change.type === 'staff.updated') {
+                            const s = change.staff;
+                            await db.run('INSERT OR REPLACE INTO staff (id, name) VALUES (?, ?)', [s.id, s.name]);
+                        }
+                    }
+                    await db.exec('COMMIT');
+                    console.log(`[Live Sync] Updated ${changesRes.data.length} new changes.`);
+                }
+
+                cursor = changesRes.next_cursor;
+                hasMore = changesRes.has_more;
+
+                if (cursor) {
+                    await db.run('INSERT OR REPLACE INTO sync_state (key, value) VALUES (?, ?)', ['next_cursor', cursor]);
+                }
+            }
+        } catch (error) {
+            if (error.message === "410_CURSOR_EXPIRED") {
+                console.log("[Live Sync] Cursor expired. Deleting cursor to reload from start...");
+                await db.run('DELETE FROM sync_state WHERE key = "next_cursor"');
+            } else {
+                console.error("[Live Sync] Error updating data:", error);
+                await db.exec('ROLLBACK').catch(() => {}); 
+            }
+        } finally {
+            isSyncing = false; 
+        }
+    }, 20000); 
+}

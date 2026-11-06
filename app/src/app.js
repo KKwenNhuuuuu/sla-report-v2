@@ -17,7 +17,9 @@ export function createApp() {
   app.use(express.static(path.join(here, "..", "public")));
 
   dbPromise.then(db => {
-    runInitialSync(db).catch(err => console.error("Lỗi đồng bộ:", err));
+    runInitialSync(db).then(() => {
+          startLiveSync(db);
+      }).catch(err => console.error("Error syncing:", err));
   });
 
   app.get("/health", (req, res) => {
