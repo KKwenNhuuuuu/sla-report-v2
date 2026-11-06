@@ -1,6 +1,8 @@
 import express from "express";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { DateTime } from "luxon"; 
+import { generateSLAReport } from "./slaService.js"; 
 
 import { initDB } from "./database.js";
 import { runInitialSync, isAppReady } from "./syncService.js";
@@ -35,12 +37,36 @@ export function createApp() {
     res.status(501).json({ error: "not implemented" });
   });
 
-  app.get("/api/sla-report", (req, res) => {
-    // TODO: implement the response-time report here.
-    // Query params: from=YYYY-MM-DD, to=YYYY-MM-DD.
-    // Use the client in src/helpdesk.js to call the helpdesk API.
-    res.status(501).json({ error: "not implemented" });
+  
+  app.get("/api/sla-report", async (req, res) => {
+      try {
+          const { from, to } = req.query;
+
+          if (!from || !to) {
+              return res.status(400).json({ error: "Missing 'from' or 'to' parameters" });
+          }
+
+          const fromDate = DateTime.fromISO(from);
+          const toDate = DateTime.fromISO(to);
+
+          if (!fromDate.isValid || !toDate.isValid) {
+              return res.status(400).json({ error: "Invalid date format. Use YYYY-MM-DD" }); 
+          }
+
+          if (fromDate > toDate) {
+              return res.status(400).json({ error: "'from' date cannot be after 'to' date" }); 
+          }
+
+          const reportData = await generateSLAReport(from, to, await dbPromise);
+
+          res.json(reportData);
+
+      } catch (error) {
+          console.error("Error generating SLA report:", error);
+          res.status(500).json({ error: "Internal server error" });
+      }
   });
+
 
   return app;
 }

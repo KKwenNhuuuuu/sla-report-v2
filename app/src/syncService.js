@@ -3,6 +3,14 @@ import { client } from './helpdesk.js';
 export let isAppReady = false;
 
 export async function runInitialSync(db) {
+    const state = await db.get('SELECT value FROM sync_state WHERE key = "next_cursor"');
+    
+    if (state && state.value) {
+        console.log("Found existing cursor. Skipping initial sync. Starting live sync...");
+        isAppReady = true; 
+        return;
+    }
+
     console.log("Data Sync (Sites, Holidays, Staff)...");
     console.time("Initial Sync Time");
 
@@ -71,6 +79,6 @@ export async function runInitialSync(db) {
     }
 
     isAppReady = true;
-    console.timeEnd("Initial Sync Time Completed in:");
+    console.timeEnd("Initial Sync Time");
     console.log("Initial Sync Complete. App is ready.");
 }
