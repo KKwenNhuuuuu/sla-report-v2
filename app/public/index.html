@@ -1,30 +1,122 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>Response-time report</title>
-</head>
-<body>
-  <h1>Response-time report</h1>
-  <form id="f">
-    <label>From <input type="date" name="from" required></label>
-    <label>To <input type="date" name="to" required></label>
-    <button type="submit">Run report</button>
-  </form>
-  <p id="status"></p>
-  <table id="report" border="1">
-    <thead></thead>
-    <tbody></tbody>
-  </table>
-  <script>
-    document.getElementById("f").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const params = new URLSearchParams(new FormData(e.target));
-      const res = await fetch("/api/sla-report?" + params);
-      const data = await res.json();
-      // TODO: render `data` into the table.
-      document.getElementById("status").textContent = res.status + " " + JSON.stringify(data);
-    });
-  </script>
-</body>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f5f7fb">
+    <title>Response-time report</title>
+    <link rel="stylesheet" href="./style.css">
+    <script src="./app.js" defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="/" aria-label="Homepage">
+          <span class="brand-mark" aria-hidden="true">H</span>
+          <span class="brand-copy">
+            <strong>HelpDesk Center</strong>
+          </span>
+        </a>
+        <div class="topbar-meta">
+          <span class="live-dot" aria-hidden="true"></span>
+          <span>Helpdesk performance</span>
+        </div>
+      </header>
+
+      <main>
+        <section class="page-heading" aria-labelledby="page-title">
+          <div>
+            <p class="eyebrow">OPERATIONS · SERVICE LEVEL</p>
+            <h1 id="page-title">SLA Report</h1>
+            <p class="page-description">Monitor response times and processing progress of requests at various locations.</p>
+          </div>
+          <div class="site-list" aria-label="Các cơ sở">
+            <span class="site-chip"><span class="site-dot singapore"></span>Singapore</span>
+            <span class="site-chip"><span class="site-dot sydney"></span>Sydney</span>
+            <span class="site-chip"><span class="site-dot jakarta"></span>Jakarta</span>
+          </div>
+        </section>
+
+        <!-- Level 1: Choose a reporting period and generate the SLA report. -->
+        <section class="panel filter-panel" aria-labelledby="filter-title">
+          <div class="section-heading filter-heading">
+            <div>
+              <h2 id="filter-title">Reporting Period</h2>
+              <p>Select the date range for the report.</p>
+            </div>
+            <span class="period-note">Maximum 6 months</span>
+          </div>
+
+          <form id="report-form" class="filter-form">
+            <div class="date-field">
+              <label for="start-date">From date</label>
+              <input id="start-date" name="from" type="date" required>
+            </div>
+            <span class="date-separator" aria-hidden="true">—</span>
+            <div class="date-field">
+              <label for="end-date">To date</label>
+              <input id="end-date" name="to" type="date" required>
+            </div>
+            <button id="generate-button" class="button button-primary" type="submit">
+              <span class="button-icon" aria-hidden="true">↗</span>
+              <span>Generate Report</span>
+            </button>
+          </form>
+        </section>
+
+        <!-- Level 2: This live region communicates foreground loading and errors. -->
+        <p id="report-status" class="report-status" role="status" aria-live="polite"></p>
+
+        <!-- Level 1: Summary KPIs and responder performance. -->
+        <section id="summary-section" class="report-section" aria-labelledby="summary-title" hidden>
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">AT A GLANCE</p>
+              <h2 id="summary-title">Summary Performance</h2>
+            </div>
+            <p id="report-period" class="report-period"></p>
+          </div>
+
+          <div id="kpi-grid" class="kpi-grid"></div>
+
+          <div class="section-heading responder-heading">
+            <div>
+              <h3>Performance by Responder</h3>
+              <p>Number of requests assigned, response rate meeting targets, and number of late completions.</p>
+            </div>
+          </div>
+          <div id="responder-grid" class="responder-grid"></div>
+        </section>
+
+        <!-- Level 1: One table row per request in the selected date range. -->
+        <section id="details-section" class="report-section details-section" aria-labelledby="details-title" hidden>
+          <div class="section-heading details-heading">
+            <div>
+              <p class="eyebrow">REQUEST LOG</p>
+              <h2 id="details-title">Request Details</h2>
+            </div>
+            <span id="request-count" class="count-badge"></span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">Request ID</th>
+                  <th scope="col">Responder</th>
+                  <th scope="col">Response Time</th>
+                  <th scope="col">Meets Target?</th>
+                  <th scope="col">Late Completion?</th>
+                </tr>
+              </thead>
+              <tbody id="details-body"></tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+      <footer class="footer">
+        <span>HelpDesk Center</span>
+        <span id="last-updated">Report will auto-update every minute</span>
+      </footer>
+    </div>
+  </body>
 </html>
