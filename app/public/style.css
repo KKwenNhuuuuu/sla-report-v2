@@ -31,7 +31,8 @@ body {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -195,6 +196,34 @@ h1 {
   background: #e2a947;
 }
 
+.tab-list {
+  display: flex;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 5px;
+  border: 1px solid #e8ecf3;
+  border-radius: 10px;
+  background: #edf1f8;
+}
+
+.tab-button {
+  min-width: 120px;
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 7px;
+  color: #647087;
+  background: transparent;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.tab-button[aria-selected="true"] {
+  color: #3452d1;
+  background: #fff;
+  box-shadow: 0 2px 6px rgb(26 47 86 / 8%);
+}
+
 .panel,
 .report-section {
   border: 1px solid #ebeff5;
@@ -243,6 +272,13 @@ h1 {
   gap: 14px;
 }
 
+.request-filter-form {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: end;
+  gap: 14px;
+}
+
 .date-field {
   width: min(220px, 27%);
   display: grid;
@@ -255,7 +291,9 @@ h1 {
   font-weight: 600;
 }
 
-.date-field input {
+.date-field input,
+.filter-field input,
+.filter-field select {
   width: 100%;
   height: 42px;
   padding: 0 12px;
@@ -268,9 +306,27 @@ h1 {
   transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 
-.date-field input:focus {
+.filter-field {
+  min-width: 0;
+  display: grid;
+  gap: 7px;
+}
+
+.filter-field label {
+  color: #606d82;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.date-field input:focus,
+.filter-field input:focus,
+.filter-field select:focus {
   border-color: #8398f5;
   box-shadow: 0 0 0 3px rgb(66 99 235 / 10%);
+}
+
+.request-filter-form .button-primary {
+  margin: 0;
 }
 
 .date-separator {
@@ -506,6 +562,12 @@ h1 {
   margin-bottom: 17px;
 }
 
+.filter-hint {
+  margin: 14px 0 0;
+  color: #78849a;
+  font-size: 11px;
+}
+
 .count-badge {
   padding: 6px 9px;
   border-radius: 20px;
@@ -623,6 +685,10 @@ tbody tr:hover {
     flex-wrap: wrap;
   }
 
+  .request-filter-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .date-field {
     width: calc(50% - 20px);
     flex: 1 1 150px;
@@ -677,6 +743,14 @@ tbody tr:hover {
   .date-field {
     width: 100%;
     flex-basis: calc(50% - 7px);
+  }
+
+  .request-filter-form {
+    grid-template-columns: 1fr;
+  }
+
+  .tab-button {
+    flex: 1;
   }
 
   .kpi-grid,

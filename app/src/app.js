@@ -3,9 +3,10 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { DateTime } from "luxon"; 
 import { generateSLAReport } from "./slaService.js"; 
+import { getRequestsList } from "./reqService.js";
 
 import { initDB } from "./database.js";
-import { runInitialSync, isAppReady } from "./syncService.js";
+import { runInitialSync, startLiveSync, isAppReady } from "./syncService.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 
@@ -34,9 +35,16 @@ export function createApp() {
     }
   });
 
-  app.get("/api/requests", (req, res) => {
-    // TODO (level 4): filters, sorting and cursor pagination, see docs/contract.md.
-    res.status(501).json({ error: "not implemented" });
+  app.get("/api/requests", async (req, res) => {
+    try {
+      const { data } = await getRequestsList(req.query, await dbPromise);
+      res.json({ data });
+    } catch (error) {
+      console.error("Error fetching requests:", error);
+      res.status(error.statusCode || 500).json({
+        error: error.statusCode === 400 ? error.message : "Internal server error"
+      });
+    }
   });
 
   

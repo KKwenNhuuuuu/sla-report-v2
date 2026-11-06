@@ -37,6 +37,18 @@
           </div>
         </section>
 
+        <div class="tab-list" role="tablist" aria-label="Report views">
+          <button id="sla-tab" class="tab-button" type="button" role="tab"
+                  aria-selected="true" aria-controls="sla-panel">
+            SLA Report
+          </button>
+          <button id="requests-tab" class="tab-button" type="button" role="tab"
+                  aria-selected="false" aria-controls="requests-panel" tabindex="-1">
+            Requests
+          </button>
+        </div>
+
+        <div id="sla-panel" role="tabpanel" aria-labelledby="sla-tab">
         <!-- Level 1: Choose a reporting period and generate the SLA report. -->
         <section class="panel filter-panel" aria-labelledby="filter-title">
           <div class="section-heading filter-heading">
@@ -111,6 +123,101 @@
               <tbody id="details-body"></tbody>
             </table>
           </div>
+        </section>
+        </div>
+
+        <section id="requests-panel" role="tabpanel" aria-labelledby="requests-tab" hidden>
+          <section class="panel filter-panel" aria-labelledby="requests-filter-title">
+            <div class="section-heading filter-heading">
+              <div>
+                <h2 id="requests-filter-title">Browse Requests</h2>
+                <p>Filter and sort the SLA request rows.</p>
+              </div>
+            </div>
+
+            <form id="requests-form" class="request-filter-form">
+              <div class="date-field">
+                <label for="requests-from">From date</label>
+                <input id="requests-from" name="from" type="date" required>
+              </div>
+              <div class="date-field">
+                <label for="requests-to">To date</label>
+                <input id="requests-to" name="to" type="date" required>
+              </div>
+              <div class="filter-field">
+                <label for="requests-site">Site ID</label>
+                <input id="requests-site" name="site_id" type="number" min="1" step="1" placeholder="All sites">
+              </div>
+              <div class="filter-field">
+                <label for="requests-responder">Responder ID</label>
+                <input id="requests-responder" name="responder_id" type="number" min="1" step="1" placeholder="All responders">
+              </div>
+              <div class="filter-field">
+                <label for="requests-late">Late completion</label>
+                <select id="requests-late" name="late">
+                  <option value="">All</option>
+                  <option value="true">Late</option>
+                  <option value="false">On time</option>
+                </select>
+              </div>
+              <div class="filter-field">
+                <label for="requests-target">Within target</label>
+                <select id="requests-target" name="within_target">
+                  <option value="">All</option>
+                  <option value="true">Yes</option>
+                  <option value="false">No</option>
+                </select>
+              </div>
+              <div class="filter-field">
+                <label for="requests-sort">Sort by</label>
+                <select id="requests-sort" name="sort">
+                  <option value="id">Request ID (ascending)</option>
+                  <option value="-id">Request ID (descending)</option>
+                  <option value="response_business_minutes">Response time (ascending)</option>
+                  <option value="-response_business_minutes">Response time (descending)</option>
+                </select>
+              </div>
+              <div class="filter-field">
+                <label for="requests-limit">Maximum rows</label>
+                <select id="requests-limit" name="limit">
+                  <option value="25">25</option>
+                  <option value="50" selected>50</option>
+                  <option value="100">100</option>
+                  <option value="200">200</option>
+                </select>
+              </div>
+              <button id="requests-submit" class="button button-primary" type="submit">Apply filters</button>
+            </form>
+            <p class="filter-hint">Results are limited to the selected maximum; pagination is not used.</p>
+          </section>
+
+          <p id="requests-status" class="report-status" role="status" aria-live="polite"></p>
+
+          <section id="requests-results" class="report-section details-section" aria-labelledby="requests-results-title" hidden>
+            <div class="section-heading details-heading">
+              <div>
+                <p class="eyebrow">REQUEST LOG</p>
+                <h2 id="requests-results-title">Requests</h2>
+              </div>
+              <span id="requests-count" class="count-badge"></span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th scope="col">Request ID</th>
+                    <th scope="col">Site ID</th>
+                    <th scope="col">Responder</th>
+                    <th scope="col">Responder ID</th>
+                    <th scope="col">Response Time</th>
+                    <th scope="col">Within Target?</th>
+                    <th scope="col">Late Completion?</th>
+                  </tr>
+                </thead>
+                <tbody id="requests-body"></tbody>
+              </table>
+            </div>
+          </section>
         </section>
       </main>
       <footer class="footer">
